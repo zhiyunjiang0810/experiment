@@ -18,7 +18,7 @@ This paper studies how prediction inference cost affects predictor selection in 
 ## Data
 
 **ATLAS (Alibaba PAI GPU trace)**
-- Source: [Alibaba PAI Trace](https://github.com/alibaba/clusterdata/tree/master/cluster-trace-gpu-v2023)
+- Source: [Alibaba PAI Trace]([https://github.com/alibaba/clusterdata/tree/master/cluster-trace-gpu-v2023](https://github.com/zhiyunjiang0810/non-clairvoyant-with-predictions))
 - 732,355 completed GPU-training jobs
 - Download the three `.tar.gz` files and place in `/content/`
 
