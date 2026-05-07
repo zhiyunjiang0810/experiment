@@ -1,26 +1,6 @@
 # The Price of Prediction: Cost-Aware Model Selection for Learning-Augmented Scheduling
 
-Code for reproducing experiments in the NeurIPS 2026 submission.
 
-## Overview
-
-# The Price of Prediction
-### Cost-Aware Model Selection for Learning-Augmented Scheduling
-
-> **NeurIPS 2026 Submission** &nbsp;|&nbsp; [Paper (PDF)](#) &nbsp;|&nbsp; [Experiments (Colab)](#reproducing-results)
-
----
-
-<p align="center">
-  <img src="figure_4panel.png" width="95%"/>
-</p>
-
-<p align="center">
-  <em>Left to right: U-shape of the cost-aware objective on ATLAS and Azure traces, 
-  scaling law θ* vs OPT/n, and regime parameter κ across predictor types.</em>
-</p>
-
----
 
 ## Overview
 
