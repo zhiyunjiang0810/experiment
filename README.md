@@ -54,20 +54,6 @@ matplotlib
 rarfile
 ```
 
-All available via pip. The notebook installs missing packages automatically.
-
-## Key results
-
-| | ATLAS | Azure |
-|---|---|---|
-| n (test set) | 10,000 | 10,000 |
-| OPT | 3.47 × 10¹⁰ | 6.29 × 10⁶ |
-| p_eff | 694 s | 0.126 s |
-| θ* (Layer 1) | 34.2 | 22.0 |
-| Price of ignoring | 21% | 23% |
-| Scaling law slope (emp / thy) | 1.24 / 0.61 | 0.61 / 0.57 |
-| Per-bucket median ratio | 1.41 | 1.02 |
-| κ (Transformer, 10ms) | 2.9 × 10⁻⁵ | 0.16 |
 
 ## License
 
