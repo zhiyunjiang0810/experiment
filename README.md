@@ -1,128 +1,190 @@
 # How Much to Predict: Cost-Aware Predictor Selection for Learning-Augmented Scheduling
 
-
-
 ## Overview
 
-This repository accompanies *How Much to Predict? Cost-Aware Predictor 
-Selection for Learning-Augmented Scheduling*. The paper addresses a 
-question absent from prior learning-augmented scheduling (LAS) guarantees: 
-**When is a prediction worth its inference cost?**
+This repository contains the experimental notebook for the paper *How Much to Predict? Cost-Aware Predictor Selection for Learning-Augmented Scheduling*.
 
-LAS schedulers improve over non-clairvoyant baselines by using ML 
-predictions of job processing times to order jobs. Prior analyses treat 
-these predictions as freely available — but in practice every prediction 
-requires model inference, and that inference takes time. On a single 
-machine, the latency $\tau$ delays *every* one of the $n$ jobs in a 
-batch, so accumulated inference cost enters the total completion time 
-objective $\sum_j C_j$ as an additive $n\tau$ term. The paper formalizes 
-the resulting accuracy–latency tradeoff into a cost-aware predictor-selection 
-framework with the following theoretical structure:
+The paper studies a basic but previously overlooked question in learning-augmented scheduling: **when is a prediction worth its inference cost?** In single-machine scheduling with objective \(\sum_j C_j\), prediction latency is not free. If a predictor takes \(\tau\) time per batch, that delay affects all \(n\) jobs, contributing an additive \(n\tau\) term to the objective. The paper develops a cost-aware predictor-selection framework that balances prediction quality against inference latency.
 
-- **The $n\tau$ penalty is unavoidable** (Theorems 1–2). Wait-then-schedule 
-  achieves $\sum_j C_j \leq n\tau(\theta) + \rho(\eta(\theta))\,\mathrm{OPT}(I)$, 
-  and a matching adaptive-adversary lower bound shows that every 
-  deterministic non-clairvoyant algorithm pays at least $(n-1)\tau/2$ — 
-  even policies that use the inference window $[0, \tau)$ to process 
-  jobs cannot escape $\Theta(n\tau)$.
+At a high level, the repository reproduces the paper’s main empirical claims:
 
-- **The cost-aware optimum scales with workload pressure** (Theorem 3, 
-  Corollary 2). Under power-law accuracy–latency tradeoffs, the objective 
-  $J(\theta) = n\tau(\theta) + \rho(\eta(\theta))\,\mathrm{OPT}(I)$ is 
-  strictly convex; whenever the interior optimum is active, it scales as 
-  $\theta^\star \propto (\mathrm{OPT}(I)/n)^{1/(a+b)}$. Heavier workloads 
-  justify more complex predictors.
-- **A single trace-computable parameter decides when cost matters at all** 
-  (Theorem 4). The regime parameter $\kappa = n\tau / \mathrm{OPT}$ 
-  measures prediction cost in units of the optimal schedule. A cost-unaware 
-  policy that minimizes prediction error alone incurs a permanent 
-  $1 + \kappa$ performance ratio that does *not* vanish as $n \to \infty$.
+- inference cost induces an unavoidable \(\Theta(n\tau)\) penalty,
+- the cost-aware optimal predictor complexity depends on workload pressure,
+- the regime parameter \(\kappa = n\tau / \mathrm{OPT}\) determines when prediction cost is negligible and when it materially changes the design choice.
 
-The framework is **algorithm-agnostic**: any LAS scheduler enters only 
-through its error–response curve $\rho(\eta)$, independent of internal 
-mechanism (SPJF, PRR, permutation-based, etc.). The selection criterion 
-therefore applies uniformly across LAS algorithm families.
+The notebook compares two production traces with very different time scales:
 
-**This notebook reproduces all main empirical results** on two production 
-traces spanning opposite ends of the job-duration spectrum: the **ATLAS** 
-Alibaba PAI GPU-cluster trace, where 
-$\kappa < 10^{-4}$ even for LLM-class predictors) and the **Azure Functions** 
-serverless trace, where a transformer-class 
-predictor reaches $\kappa \approx 16\%$). The contrast between the two 
-regimes — quantified in Figures 3(a)–(d) and Table 1 — is the central 
-empirical finding: cost-aware selection is operationally negligible on 
-long-job traces but reshapes the design problem on short-job traces.
+- **ATLAS / Alibaba PAI GPU trace**: long jobs, where prediction cost is typically negligible,
+- **Azure Functions 2021 trace**: short jobs, where prediction cost can be substantial.
 
-## Key Results
+## What is in this repository
 
-The two production traces span opposite ends of the job-duration 
-spectrum — a ~5000× gap in effective batch scale — producing 
-qualitatively different regimes for cost-aware predictor selection.
+This repo is centered around a single notebook that runs the experiments end to end:
 
-| | ATLAS (GPU cluster) | Azure (serverless) |
-|:---|:---:|:---:|
-| Jobs | 732K | 1.98M |
-| Effective scale $p_{\text{eff}}$ | 694 s | 0.13 s |
-| Cost-aware optimum $\theta^\star$ (Layer 1) | 34.2 | 22.0 |
-| Price of ignoring cost | +20% | +23% |
-| Scaling slope (empirical / theory) | 1.24 / 0.61 | 0.61 / 0.57 |
-| Per-bucket median $\theta^\star_e / \theta^\star_t$ | 1.41 | **1.02** |
-| Regime $\kappa$ at 10 ms/job (transformer-class) | $2.9 \times 10^{-5}$ | **0.16** |
+- `experiment_notebook.ipynb` — main notebook for data loading, synthetic predictor experiments, LightGBM experiments, and figure generation.
 
-> **The $\kappa$ separation is the central empirical finding.** On ATLAS 
-> ($p_{\text{eff}} \approx 700$ s), prediction cost is negligible even for 
-> LLM-class predictors ($\kappa < 10^{-4}$). On Azure 
-> ($p_{\text{eff}} \approx 0.13$ s), a transformer-class predictor already 
-> pushes $\kappa$ to 16% — cost-aware selection becomes the operative 
-> design question.
+The notebook currently includes six major stages:
 
-## Repository Structure
+1. **Setup and Azure extraction**
+   - installs `rarfile` and `lightgbm`,
+   - extracts the Azure `.rar` archive into `azure_data/`.
 
-```
+2. **Shared helper functions**
+   - computes `OPT` for single-machine \(\sum C_j\),
+   - evaluates SPJF under predicted processing times,
+   - fits power laws,
+   - defines the semi-synthetic predictor used in Layer 1.
+
+3. **ATLAS Layer 1**
+   - loads and joins the three Alibaba PAI tables,
+   - constructs job-level durations,
+   - runs the semi-synthetic U-shape and workload-pressure experiments.
+
+4. **ATLAS Layer 2**
+   - trains a family of LightGBM predictors,
+   - measures empirical prediction latency,
+   - evaluates the cost-aware objective across predictor configurations.
+
+5. **Azure Layer 1**
+   - loads the Azure Functions trace,
+   - runs the same semi-synthetic cost-aware experiments,
+   - computes the \(\kappa\)-regime comparison table.
+
+6. **Figure generation**
+   - produces the four-panel figure and saves:
+     - `figure_4panel.pdf`
+     - `figure_4panel.png`
+
+## Repository structure
+
+```text
 .
-├── experiment_notebook.ipynb   # Main notebook — run on Colab, no GPU needed
-├── figure_fixed.py             # 4-panel figure (Figure 1)
-├── results_table.py            # Scaling law heatmap table (Table 1)
-└── README.md
+├── README.md
+└── experiment_notebook.ipynb
 ```
 
-## Data
+## Data requirements
 
-| Trace | Source | Size | Format |
-|:------|:-------|:-----|:-------|
-| **ATLAS** (Alibaba PAI) | [GitHub](https://github.com/zhiyunjiang0810/non-clairvoyant-with-predictions) | 732K jobs | 3 × `.tar.gz` → place in `/content/` |
-| **Azure Functions 2021** | [Azure Public Dataset](https://github.com/Azure/AzurePublicDataset) | 1.98M invocations | `.rar` → place in `/content/` |
+The notebook expects the raw trace files to be available locally, with paths matching the code.
 
-## Reproducing Results
+### 1. ATLAS / Alibaba PAI trace
 
-The notebook runs **end-to-end on Google Colab** (free tier, no GPU).
+Place these three archives in `/content/` when running on Google Colab:
 
-| Cell | What it does | Time |
-|:-----|:-------------|-----:|
-| 0 | Setup & data extraction | ~10s |
-| 1 | Shared helpers | instant |
-| 2 | ATLAS data loading | ~30s |
-| 3 | ATLAS Layer 1 (U-shape + scaling law) | ~2 min |
-| 4 | ATLAS Layer 2 (GBT family, 12 configs) | ~15 min |
-| 5 | Azure Layer 1 (U-shape + scaling law) | ~2 min |
-| 6 | Plot Figure 1 | instant |
+- `/content/pai_group_tag_table.tar.gz`
+- `/content/pai_job_table.tar.gz`
+- `/content/pai_task_table.tar.gz`
 
-**Total: ~20 minutes.**
+The notebook extracts them into:
+
+- `/content/extracted/`
+
+and expects the extracted CSV files:
+
+- `pai_group_tag_table.csv`
+- `pai_job_table.csv`
+- `pai_task_table.csv`
+
+### 2. Azure Functions 2021 trace
+
+Place the Azure archive at:
+
+- `/content/AzureFunctionsInvocationTraceForTwoWeeksJan2021 (1).rar`
+
+The notebook extracts it into:
+
+- `azure_data/`
+
+and then reads:
+
+- `azure_data/AzureFunctionsInvocationTraceForTwoWeeksJan2021.txt`
+
+## How to run
+
+### Google Colab
+
+The notebook is written primarily for Colab-style paths such as `/content/...`.
+
+1. Upload the three ATLAS `.tar.gz` files to `/content/`.
+2. Upload the Azure `.rar` file to `/content/`.
+3. Open `experiment_notebook.ipynb`.
+4. Run the cells in order.
+
+### Local execution
+
+To run locally, you will likely need to adjust the hard-coded `/content/...` paths in the notebook.
+
+Install dependencies:
 
 ```bash
-# Or run locally:
 pip install numpy pandas scipy lightgbm matplotlib rarfile
+```
+
+You also need an `unrar` binary available on your system if you want to extract the Azure archive in the same way as the notebook.
+
+Then launch Jupyter:
+
+```bash
 jupyter notebook experiment_notebook.ipynb
 ```
 
+## Outputs
+
+Running the notebook produces:
+
+- printed summaries for ATLAS Layer 1,
+- printed summaries for ATLAS Layer 2 with LightGBM latency and cost-aware comparisons,
+- printed summaries for Azure Layer 1,
+- a saved four-panel figure:
+  - `figure_4panel.pdf`
+  - `figure_4panel.png`
+
+## Experimental scope
+
+Based on the current code, this repository reproduces:
+
+- the semi-synthetic cost-aware experiments for **ATLAS** and **Azure**,
+- the workload-pressure scaling analysis,
+- the empirical \(\kappa\)-regime comparison,
+- a real-predictor **LightGBM** study for **ATLAS**,
+- the final four-panel figure generated from these results.
+
+The repository does **not** currently contain separate standalone scripts such as `figure_fixed.py` or `results_table.py`; the analysis is implemented directly inside the notebook.
+
 ## Dependencies
 
-```
-numpy, pandas, scipy, lightgbm, matplotlib, rarfile
-```
+The notebook imports or installs the following Python packages:
 
-All pip-installable. The notebook installs missing packages automatically.
+- `numpy`
+- `pandas`
+- `scipy`
+- `lightgbm`
+- `matplotlib`
+- `rarfile`
+
+It also uses standard-library modules including:
+
+- `os`
+- `time`
+- `pathlib`
+- `tarfile`
+- `gc`
+- `warnings`
+- `dataclasses`
+- `typing`
+
+## Notes
+
+- No GPU is required for the notebook as written.
+- The Azure extraction cell uses `apt-get install -y unrar` and is therefore easiest to run in Colab or another Debian-like environment.
+- The current notebook filename in the material you shared appears as `experiment_notebook (2).ipynb`; if you keep that name in the repository, update the README references accordingly.
+
+## Citation
+
+If you use this repository, please cite the corresponding paper:
+
+*How Much to Predict? Cost-Aware Predictor Selection for Learning-Augmented Scheduling*.
 
 ## License
 
-Released for anonymous review. Full license will be added upon acceptance.
+Released for anonymous review. A formal license can be added later if needed.
