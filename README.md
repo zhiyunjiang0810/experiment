@@ -83,6 +83,25 @@ qualitatively different regimes for cost-aware predictor selection.
 └── experiment_notebook.ipynb
 ```
 
+## Data
+
+| Trace | Source | Files |
+|:------|:-------|:------|
+| **ATLAS** (Alibaba PAI) | [GitHub](https://github.com/zhiyunjiang0810/non-clairvoyant-with-predictions) | 3 × `.tar.gz` (732K jobs) |
+| **Azure Functions 2021** | [Azure Public Dataset](https://github.com/Azure/AzurePublicDataset) | 1 × `.rar` (1.98M invocations) |
+
+**Placement** (Google Colab paths; adjust for local runs):
+
+```text
+/content/
+├── pai_group_tag_table.tar.gz    ← ATLAS
+├── pai_job_table.tar.gz
+├── pai_task_table.tar.gz
+└── AzureFunctionsInvocationTraceForTwoWeeksJan2021 (1).rar  ← Azure
+```
+
+The notebook extracts these automatically on first run.
+
 ## Data Requirements
 
 The notebook expects raw trace files to be available locally at the paths used in the code.
