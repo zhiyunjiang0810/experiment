@@ -4,13 +4,13 @@
 
 This repository contains the experimental notebook for the paper *How Much to Predict? Cost-Aware Predictor Selection for Learning-Augmented Scheduling*.
 
-The paper studies a basic but previously overlooked question in learning-augmented scheduling: **when is a prediction worth its inference cost?** In single-machine scheduling with objective \(\sum_j C_j\), prediction latency is not free. If a predictor takes \(\tau\) time per batch, that delay affects all \(n\) jobs, contributing an additive \(n\tau\) term to the objective. The paper develops a cost-aware predictor-selection framework that balances prediction quality against inference latency.
+The paper studies a basic but previously overlooked question in learning-augmented scheduling: **when is a prediction worth its inference cost?** In single-machine scheduling with objective ∑_j C_j, prediction cost can materially affect which predictor one should use.
 
 At a high level, the repository reproduces the paper’s main empirical claims:
 
-- inference cost induces an unavoidable \(\Theta(n\tau)\) penalty,
+- inference cost induces an unavoidable Θ(nτ) penalty,
 - the cost-aware optimal predictor complexity depends on workload pressure,
-- the regime parameter \(\kappa = n\tau / \mathrm{OPT}\) determines when prediction cost is negligible and when it materially changes the design choice.
+- the regime parameter κ = nτ / OPT determines when prediction cost is negligible and when it materially changes the design choice.
 
 The notebook compares two production traces with very different time scales:
 
@@ -30,7 +30,7 @@ The notebook currently includes six major stages:
    - extracts the Azure `.rar` archive into `azure_data/`.
 
 2. **Shared helper functions**
-   - computes `OPT` for single-machine \(\sum C_j\),
+   - computes `OPT` for single-machine ∑ C_j,
    - evaluates SPJF under predicted processing times,
    - fits power laws,
    - defines the semi-synthetic predictor used in Layer 1.
@@ -48,7 +48,7 @@ The notebook currently includes six major stages:
 5. **Azure Layer 1**
    - loads the Azure Functions trace,
    - runs the same semi-synthetic cost-aware experiments,
-   - computes the \(\kappa\)-regime comparison table.
+   - computes the κ-regime comparison table.
 
 6. **Figure generation**
    - produces the four-panel figure and saves:
@@ -145,7 +145,7 @@ Based on the current code, this repository reproduces:
 
 - the semi-synthetic cost-aware experiments for **ATLAS** and **Azure**,
 - the workload-pressure scaling analysis,
-- the empirical \(\kappa\)-regime comparison,
+- the empirical κ-regime comparison,
 - a real-predictor **LightGBM** study for **ATLAS**,
 - the final four-panel figure generated from these results.
 
