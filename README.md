@@ -63,7 +63,7 @@ qualitatively different regimes for cost-aware predictor selection.
 | Jobs | 732K | 1.98M |
 | Effective scale $p_{\text{eff}}$ | 694 s | 0.13 s |
 | Cost-aware optimum $\theta^\star$ (Layer 1) | 34.2 | 22.0 |
-| Price of ignoring cost | +20% | +23% |
+| Price of ignoring cost | +21% | +23% |
 | Scaling slope (empirical / theory) | 1.24 / 0.61 | 0.61 / 0.57 |
 | Per-bucket median $\theta^\star_e / \theta^\star_t$ | 1.41 | **1.02** |
 | Regime $\kappa$ at 10 ms/job (transformer-class) | $2.9 \times 10^{-5}$ | **0.16** |
