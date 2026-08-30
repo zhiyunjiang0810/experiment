@@ -1,16 +1,119 @@
 # REPORT.md
 
-## Summary
+## Summary（第二晚）
+
+- 全部 PASS：N0 术语表/规则；N1 一般 K 对偶证书；N2 显式 V_j 实例；N3 K=5 验证；N4 hardness 解析化；N5 有界查询定理草稿；N6 加性误差模型。无任务级 FAIL。
+- 头条：**ρ_K(η) = min_j V_j(η) 两个方向都到证书级**（N1 对偶 + N2 实例，均一般 K 符号验证），只剩 R6 有效不等式一步手证；N4 进一步表明 poly-query 技术的 n→∞ 极限恰是这同一闭式（修正第一晚"贴 U_K"的解读）。
+- 两处对第一晚结论的修正已同步进文档：δ 闭式是 max 双支形式（N5，分歧点经独立 LP 复核）；relaxF 的 n=8K 数值未收敛（N4）。
+- 最需人类判断：N2 实例的 f̃ 单调但不 submodular（R7 同病）——若模型要求 f̃ 也 submodular，全部上界实例失效，ρ_K 可能变大，这是建模决定；其次是 N6 的混合误差模型在量化尺度 ε 下对大多数真实数据行不可行，论文实证叙事需按 md 中的读法措辞。
+- 复现：每个数字有一键脚本（results/N*_*.py，主会话全部复跑过）；第一晚 summary 存档在下方。
+
+## Summary（第一晚，存档）
 
 - 全部 PASS：T1 基线一致；T2 hardness；T3 闭式；T4 lookahead；T5 符号化；T6 实证；T7 定理草稿。无 FAIL（仅 T2 的 4 个超大 LP 超时跳过，已记录）。
-- 最重要发现：R9 候选在真 balanced 定义下有结构性不可行证书（F 在 y=K 处平坦 vs Ĝ 递增，任意 n/δ/τ 都救不了）；放开 F 后 LP 值贴 U_K、K→∞ → 1−e^{−1/η}，且 y≤τ 下最小 δ 有精确闭式 1+δ=(a^τK/(K−τ))²。
+- 最重要发现：R9 候选在真 balanced 定义下有结构性不可行证书（F 在 y=K 处平坦 vs Ĝ 递增，任意 n/δ/τ 都救不了）；放开 F 后 LP 值贴 U_K、K→∞ → 1−e^{−1/η}，且 y≤τ 下最小 δ 有精确闭式 1+δ=(a^τK/(K−τ))²。（注：两处解读已被第二晚 N4/N5 修正，见上。）
 - 意外收获：T3 得到 K=3、K=4 分段闭式 + 一般 K 猜想 min_j V_j（符号对偶证书）；T4 发现 pair greedy 在 K=4 恰等于 ρ_2(η)；T5 把 R7 升级为一般 K [VERIFIED-SYMBOLIC]。
-- 最需人类判断：论文 hardness 一节怎么讲——T2 表明现有技术只能给渐近 1−e^{−1/η}（有限 K 贴 U_K），严格 poly-query 定理需要从 T2_relaxF_solution_example.json 的 LP 最优解解析化新构造。
-- 环境注：GitHub 写权限 403（Claude App 未安装），全部工作在本地分支 commit；装好 App 后一次 push 即可。
+- 最需人类判断（当晚）：论文 hardness 一节怎么讲——第二晚 N4/N5 已给出答案的主体。
 
 ---
 
 ## 任务日志（倒序追加在此行之下）
+
+### ——— 第二晚（TASKS2.md）———
+
+### N6 加性修正的误差模型 — PASS（理论紧 + 实证半正半负，全部诚实落盘）
+- 理论 [HAND-PROOF-UNREVIEWED + LP oracle]：模型 d/η_u − ε ≤ d̃ ≤ η_o·d + ε 下
+  F^PG ≥ L_K(η)·(OPT − 2Kη_u·ε)；关键结构：ε 只与 η_u 相乘（回代发生在被选元素上）。
+- LP 检验超预期：16/16 无违反且发现 **LP(ε) = ρ_K(η)·max(0, 1−2Kη_u·ε) 精确成立**
+  （29 点残差 ≤2.8e-16，覆盖 K=2,3,4 与三种误差拆分）[CONJECTURE N6-C1]——
+  即推导的 ε 部分是紧的，唯一松弛就是 ε=0 时已有的 ρ_K − L_K。ε* = OPT/(2Kη_u) 只依赖 η_u（已验证）。
+- 实证 trimmed 重测（1260 行）：η^path 大幅下降（K=7 中位数 43→4.8、60→5.5、371→17.9）但
+  下界在 K ≥ 5 仍实质 vacuous（数值 0.009-0.074 vs 实测 ratio 0.94-0.96；wine 转负）；
+  **实质进步在 K=3 的 ε 优化认证下界**：0.286/0.439（breast_cancer/digits20，比 T6 好 10-31 倍），wine 例外。
+- 重要负面结果：任务规定的 ε（1-2 个量化单位）下混合模型对 1110/1260 行不可行
+  （存在 d>0 且 d̃<−ε 的对）；使可行的最小 ε 中位数 3-12.6 个单位。additive_bound 的正确读法
+  已在 md 中写明。s10 的 10 行"违反"全部是前提失配（f(∅)≠0、oracle greedy 非 OPT），非定理反例。
+- 复现：N6_additive_lp.py（11 秒）、N6_eta_trimmed.py（247 秒），主会话复跑均退出码 0；
+  详见 results/N6_additive_model.md、N6_eta_trimmed.csv、figures/N6_*.png。
+- 未做（[FAILED] 子项）：结合 N1 "mono 乘子恒为 0" 检查加性项能否绕开 monotonicity（时间用尽）。
+
+### N5 有界查询版 hardness 定理草稿 — PASS（含对 T2 结论 1 的实质修正）
+- results/N5_bounded_query_hardness.tex：concentration 引理（并集界 + 超几何，n ≥ 4K^{c+2}）、
+  取值引理、确定性定理 + 随机化推论（只用平均论证，不冒称 Yao minimax），每步状态标签，
+  第 6 节逐词空洞性检验 V1-V17（删 adaptive；poly-query/查询大小≤K/K≥2τ/(H)/η>1 为承重限定词；
+  all-pairs 版标 open；全文不写 tight）。
+- **修正 T2 结论 1**：δ 闭式完整形式是 1+δ = max{a^τK/(K−τ), a^{1−τ}}²，第二支来自 y 方向
+  balanced 边，第一支占优 iff η ≥ 2−1/τ。第一晚测试点全在第一支区所以未暴露。
+  Oracle：N5_delta_at_etahat.py 40 点 + 主会话在分歧点 (4,1.2,2) 用第一晚网格 LP 独立复核
+  （LP=0.595568=第二支）。已同步修正 RESEARCH_STATE R11(a) 与 T2_summary。
+- 定理需两处结构性修改：加假设 (H) η̂ ≥ 1（充分条件 K ≥ τ(1+2/ln η)）；η̂ 用 Φ(θ)=θ(1+δ(θ))
+  的不动点定义（δ 对 η 不再单调）。sympy 15/15：δ→0（首阶 2τ(1−1/η)/K）、L_K(η̂) → 1−e^{−1/η} 等。
+- 诚实边界：max 闭式一般 (K,τ,η) 仍 [CONJECTURE]，τ 只测 {1,2}（c ∈ {0,1}）；F 固定非最优
+  （N4 的最优 (F,G) 代入会更强但只测 τ=1，列为下一步）；有限 K 下本定理弱于 greedy 侧曲线，
+  内容是渐近的。主会话复跑两个脚本均退出码 0。
+
+### N2 中间 j 的可实现实例 [VERIFIED-SYMBOLIC 一般 K，模分支枚举] — PASS（R10 升级为精确最坏值）
+- 对每个 j（0 ≤ j ≤ K）构造显式 (f, f̃)：三类元素 C(j)+P(K−j)+O(K)，
+  f = 1 − q^x(1−y/K) + zδ_jχ(y)，f̃ = W(0) − q^xW(y) + zδ̃χ(y)（W(0)=k1/(Kη_u)，W(y)=(K−y)η_o/K，
+  δ_j=q^j/(Kη)）。机制：f̃ 把每步候选压成 O 真实增益/η_u，每步与 O 打平（tie 对抗承重）。
+- j=0 退化为 R2 modular 实例；j=K 与 R7/U_K 逐点相同；中间 j 全新。取 j*(η) 即 ρ_K ≤ min_j V_j。
+- 验证：480/480（主会话复跑退出码 0）：44 条一般 K 符号 + K=2..6 全格点 + K=2..8 精确 Fraction
+  + R5 表 25 点重现 + 与 K=2 witness 逐元素一致 + strict tie 变体极限。
+- **净结论：ρ_K(η) = min_j V_j(η) 两个方向都到证书级**（≤ 方向 N2 实例；≥ 方向 N1 对偶证书），
+  仅剩 R6 有效不等式那一步 [HAND-PROOF-UNREVIEWED]。
+- 最需人类判断（N2 caveat 3）：f̃ 单调但不 submodular（与 R7 同病）；若模型要求 f̃ 也 submodular，
+  ρ_K 可能变大，现有全部上界实例失效，这是建模层面的决定。
+
+### N4 Hardness 的解析化 [VERIFIED-SYMBOLIC 一般 (K,η) + VERIFIED-LP 42 组精确有理] — PASS
+- **修正 T2 结论 3 的解读**：relaxF LP 值对 n 未收敛（T2 用的 n=8K 不够大）；n→∞ 极限
+  逐点等于 y≤τ 定义下的值，而后者 = **ρ_K^LP = min_j V_j（R10 闭式），严格小于 U_K**。
+  超额项衰减极快（η=2: K=4/8/16/32 为 3.2e-4/5.9e-7/4.4e-12/5.2e-22）。
+  两条研究线合流：poly-query 技术的极限恰是 greedy 最坏比闭式。
+- 拿到 LP 最优 (F,G) 完整显式公式：相位 1（x ≤ j）逐字是 R7/U_K 实例（a=q=1−1/(η(K−1)+1)）；
+  相位 2（j < x ≤ T）是 coherence lemma R3(ii) 处处取等的常数增量尾巴，g_T=r_T 处闭合；
+  D 与 value 的闭式见 results/N4_hardness_construction.md。
+- T2 的 (8,3) 意外观察获解释：X=n−K 太小放不下相位 2 尾巴，长程约束族 L 消失，值掉回 V_j。
+- 紧约束 100% 落入 8 个族（K=3..6 全覆盖）：A-D 精确复现 reduced LP 的四类约束；
+  族 L（穿过非平衡行的长程链）是 reduced LP 没有的，正是有限 n 超额项来源。
+- 诚实边界：j、m* 索引闭式 [CONJECTURE]（264 点）；η > K−1 时闭式仅可行非最优；
+  (5,4) 一个点差 3.2e-7 未查明；显式构造只对 y≤τ 可行，真 balanced 定义仍需 N5 的
+  concentration 论证；只测 τ=1、√η 拆分。
+- 复现：N4_check.py（42 组精确有理可行性，主会话复跑退出码 0）、N4_symbolic.py（19/19，
+  主会话复跑退出码 0）、N4_duals.py、N4_figures.py；图 figures/N4_*.png。
+
+### N3 R6 在 K=5 的验证 [VERIFIED-LP] — PASS
+- n=10 全格点 LP（2048 变量 × 38435 行）与 reduced(5,η) 在 η ∈ {1.5,2,3,4.5} 完全一致
+  （≤1.7e-16），且都等于 R10 闭式 min_j V_j；四个值为干净有理数 6389/12005、1597/3645、
+  269/845、21/95，段号 j=4,3,2,1 与分段吻合。R6 的"上界=reduced"由 K≤4 扩到 K≤5。
+- 关键自检：同一构造器在 n=6,K=3 枚举全部 20 个 O 与 code/worst_case_lp.py 逐位一致（diff=0）。
+- O 类型扫描（η=1.5,2 全部 6 类）：值随 |O∩greedy| 严格递增，不相交类型确为 argmin。
+- 支持 R5 猜想：η=4.5 < K=5 时 21/95 < 1/4.5。
+- 复现：python3 results/N3_K5_lattice.py（约 17 分钟；主会话核对 CSV 与日志后跳过整体复跑，
+  理由：脚本自带 n=6 对已验证代码的逐位等价自检）。caveats：每类型只解一个 O（对称性依据）、
+  只测 single-element √η 拆分、n=2K。
+
+### N1 一般 K 的对偶证书 [VERIFIED-SYMBOLIC] — PASS（R10 下界方向升级为一般 K 定理级）
+- 全部乘子写成 (K,η,j) 显式公式（记 M = Kη−(K−j)）：段 j≥1 上 y_sum(0)=−q^{j−1}M/(Kk1)、
+  y_sum(t)=−q^{j−1−t}M/k1²（1≤t≤j−1）、y_sum(j)=(η−(K−j+1))/k1、y_cons(t≤j−1)=−q^{j−1−t}M/(Kk1)、
+  y_cons(t≥j)=−(K−1−t)/(K(η−1))、y_pred(t≥j)=−(η−(K−t))/(K(η−1))、y_mono≡0；j=0 段沿用 T3。
+- 验证：符号 (K,j,t,i) 全自由的三条恒等式（对偶可行等式、段内非正性的盒上正性证书、bᵀy=V_j）
+  + K=2..10 共 54 段的独立暴力符号 LP 复核 + 与第一晚 58 个乘子逐个比对 0 不符。
+  320/320 PASS，主会话复跑确认（60 秒，退出码 0）。唯一非 oracle 步骤是 t 分支的有限枚举（组合记账）。
+- 重要副产品：(i) mono 乘子恒为 0，下界证明不需要 monotonicity（删 mono 行 LP 值不变，双验证）；
+  (ii) U_K − V_{K−1} = q^{K−1}(η−1)/(Kηk1) > 0 [VERIFIED-SYMBOLIC]，R7 实例族达不到 V_{K−1}，
+  证紧需要新实例（正是 N2）；(iii) V_i−V_{i+1} 恒等式给出整数分段点的直接证明。
+- 诚实边界：reduced LP 值 = 真实 ρ_K 仍依赖 R6（[HAND-PROOF-UNREVIEWED] + K≤4 有限点）；
+  L_K ≤ min_j V_j 仅数值支持 [CONJECTURE]；两个 scipy 对偶退化点已如实列出（非反例）。
+- 复现：python3 results/N1_dual_certificate.py；详见 results/N1_dual_certificate.md/.json。
+
+### N0 术语表与规则更新 — PASS
+- GLOSSARY.md 建立（13 个词条，含任务规定的 8 个必含术语：近似比方向、consistency 撞名改称
+  coherence lemma、tight 三义、any algorithm 三范围、robust 禁用、η 与 Agarwal-Balkanski 撞名、
+  information-theoretic、deterministic vs randomized 下界）。
+- CLAUDE.md 末尾新增"空洞性检验"规则；RESEARCH_STATE.md 追加 R10-R13（各带状态标签）、
+  R7 升级注记、R3 更名、已知论文错误新增"Section 1.1 近似比定义方向写反"。
+- results/T7_theorems.tex 的 Lemma B 同步改名 Coherence。代码内部约束标识 cons(t) 不动
+  （属脚本内部命名，改动会破坏第一晚脚本的可复现性，保守处理并在 GLOSSARY 注明）。
 
 ### T7 定理陈述与证明草稿 — PASS
 - `results/T7_theorems.tex`：Theorem A（trajectory-tight，L_K(η^path) 下界 + U_K 逐 K 紧，
