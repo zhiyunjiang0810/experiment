@@ -1,5 +1,13 @@
 # REPORT.md
 
+## Summary（第四晚：修补、收尾、写作物料）
+
+- 全部 PASS：F0 记号定稿；F1 实验修补（6/6）；F2 理论卫生（两悬案落地）；F5 写作物料（6 页模板编译干净）；F6 引用（23/23 四步核验入库）；F3 hardness 再攻（交付齐全，原目标如实 FAILED 但得到任意大小查询、Q=O(n²) 的定理草稿）；F4 submodular f̃（建模悬案有了答案）。
+- 三个改变认知的结果：F4 证实要求 f̃ submodular 时最坏值在 η<K−1 严格变大（9/16→19/33，新闭式 min_m W_m [CONJECTURE]，U_K 失效）；F3 发现真带是过强形式化（大查询自动 O-无关），但查询预算指数内在卡在 2；F2 判定 (5,4) 为真实差异（N4 闭式隐含 F(x,K)≡1）。
+- 两处修正：GS 2007 的 α 方向（=η^sel 非 1/η^sel，GLOSSARY+正文已改，Theorem 6 措辞降为 "in the terminology of GS"）；E2 的 η^path 中位数 71.7→284（去截断）。
+- 最需人类拍板：论文采用哪个 surrogate 模型（f̃ 是否要求 submodular——决定 ρ_K 一整章怎么写）；以及 Theorem 6 归属措辞的最终口径。
+- 硬规则全守：23 条引用全过四步核验才入 .bib；所有 .tex 在 ICLR 2027 模板下编译通过（日志在 results/F*_compile.log、F5_paper_compile.log）。
+
 ## Summary（实验之夜）
 
 - 全部 PASS：E0 管线；E4 最坏实例 oracle（19/19 差 ≤1e-10）；E1 feature selection；E2 IM（240 轨迹无降规模）；E3 摘要；E5 主图；E6 汇总。无任务级 FAIL，无人工扰动 oracle。
@@ -26,6 +34,95 @@
 ---
 
 ## 任务日志（倒序追加在此行之下）
+
+### ——— 第四晚（TASKS4.md）———
+
+### F7 收尾 — PASS
+- REPORT 顶部换为第四晚 summary；RESEARCH_STATE 追加"第四晚 F1-F4"更新块；
+  results.tex 的 F4 占位 remark 已按结果定稿并重编译；文件清单 results/F7_file_inventory.md；
+  全部推送 + experiment 镜像同步。
+
+### F4 submodular f̃ 约束下的最坏值 — PASS（回答了第二晚的建模悬案）
+- **要求 f̃ submodular 会改变最坏值**：η < K−1 区严格变大（K=3,η=1.5: 9/16→19/33；
+  K=4,η=1.5: 1447/2662→23/41；K=4,η=2: 22/49→23/50），η ≥ K−1 区不变。9 主点 + K=5 三点
+  的 LP 最优解全部经独立验证器确认为真实例（f 单调 submodular、f̃ submodular、误差恰达、
+  greedy 轨迹、比值=LP 值）——变大是可达的，不是松弛 [VERIFIED-LP]。
+  主会话在分歧点 (3,1.5) 复跑精确吻合。
+- 新闭式猜想 ρ_K^sub = min_m W_m（W_m=(K−m r^m)/(K(1+(η−1)r^m))，r=1−1/K；与 V_j 同构，
+  衰减率 q→r），76/76 LP 点偏差 ≤4.4e-16 [CONJECTURE]；渐近极限比 1−e^{−1/η} 高 ~10%。
+- U_K 在新模型**失效**为上界 [VERIFIED-LP]（R7 的 f̃ 也不 submodular）；L_K 仍是下界但更松。
+  N2 族 0/72 submodular（违反量 O(1)）。若论文采用 submodular surrogate 模型，
+  R7/U_K 全部陈述需重写——这是最需人类拍板的建模决定，remark 素材已备
+  （results/F4_submodular_ftilde.md，明确禁写 "more robust"）。
+- 诚实边界：闭式无对偶证书无一般 K；K=5 只解不相交 O（上界，但实例可达）；n=2K 充分性
+  K≥4 为 [CONJECTURE]；只测 √η 拆分。复现 results/F4_submodular_ftilde.py（约 12 分钟）。
+
+### F1 实验修补 — PASS（6/6，主会话核对新列与行数）
+- ROUGE 核对：自实现与 rouge-score 在 90 篇 × 1,624 个候选上**逐项精确 0 差**（原因：这批文本
+  无下划线/重音字符，两个 tokenizer 逐 token 相同；café/Zürich 负控制证明装置灵敏 0.05-0.13）。
+  未改 f、未因 ROUGE 重跑 E3。venv 安装（系统 pip 因 Debian setuptools 补丁失败，非网络）。
+- E2 η^path 去截断：4 图 240 轨迹全量重算（artist 31.5 分钟 < 40 上限，无图 n/a）。
+  K=30 合并中位数 71.7→284（artist 200→1407）；断言 ratio/η^sel/viol 7,200 行逐行不变、
+  pairs 文件逐字节相同。顺带更正 E2_notes 旧错："d≤0 出现 0 次"实为 16/240 条 run 各 1 步
+  （用旧文件复核确认非本次改动引入）。
+- statistics.py 写死非正步策略 + 新列 n_steps_nonpos/frac_steps_nonpos；E1-E4 全部重生成，
+  旧列 0 处不同（E1 完整重跑 905 秒；rebuild-from-pairs 因 10 位舍入无法逐位重建，脚本改为
+  拒绝写盘并如实记录）。
+- OPT 代理：breast_cancer 暴力枚举到 K=4（K=5 估 74 分钟超预算，诚实降级）：
+  f(greedy^f)/OPT 中位 0.9823（min 0.9554），greedy^f̃/OPT 0.9464。airline K=7 仍未测。
+- EXP_table.tex 重生成（含新列与固定两句表注；旧表本超宽 465pt，新表 393.7pt 无 Overfull）；
+  E5 全部图重出。详见 results/F1_fixes.md。
+
+### F3 Hardness 全版本再攻 — PASS（交付齐全；原目标"任意多项式次查询"如实 FAILED）
+- flatness 判定：N4 的 F(x,K)≡1 确实平坦且 x>T 整片饱和，但 R11(b) 证书不适用（Ĝ 同时饱和）。
+  τ=1 真带下 **δ 恰为 0 iff n > K(T+1)**（门槛闭式 12/12 命中 [CONJECTURE]；任务指定的 n=8K
+  恰好全在门槛之下——此前真带检查都在错误一侧）。τ≥2 对任意 n/δ 不可行（连 y≤τ 也一样），
+  普适 2 约束 IIS 证书 240/240 与独立图论判据等价（主会话复跑 cert：252/252 PASS）。
+- **意外正面结果**：N4 的 G 在 x>T 上自动 O-无关（[EXACT] 12/12），泄露集合全部满足
+  |S∩O|≥2 且 |S|≤T+K——真带是过强的形式化，大查询不需要 concentration。由此得到
+  **任意大小查询**的 hardness 定理草稿（results/F3_hardness_full.tex，模板下编译 2 页 0 错误）：
+  预算 Q = O(n²/((2+η)²K⁴))，常数贴 ρ_K^LP。**指数卡在 2 是该族内在上限**，正文必须显式限定。
+- 控制实验：F 也放开时真带 72/72 可行 δ=0，值与 y≤τ 逐点相等——障碍是 N4 显式闭式非真带本身；
+  relaxF 值随 τ 单调退化，τ*=⌈K/η⌉ 处撞 1/η [CONJECTURE 8 行 7 中]。
+- 诚实边界：定理装配步骤全 [HAND-PROOF-UNREVIEWED]；(12,3) 一行 HiGHS >20 分钟 SKIP；
+  全部网格 LP、√η 拆分。数据 results/F3_delta_table.csv（309 行）、详见 F3_summary.md。
+
+### F6 引用核验与 .bib — PASS（23/23 入库，0 未过）
+- paper/references.bib：23 条全部过四步核验（9 条定位到定理/章节号，14 条 PASS*——存在性/
+  字段/版本全验、陈述定位到摘要级，audit 里逐条注明）；模板 .bst 下编译 0 警告。
+- 三个重要发现：(i) **Goundan-Schulz 2007 是 MIT working paper（无会议/期刊版）**，其 Theorem 1
+  逐字就是本文 L_K 界，且 α 约定为 α = η^sel（**GLOSSARY 此前写反为 1/η^sel，已修**；
+  论文 Theorem 6 措辞降为 "in the terminology of GS"，不得写 we prove——需人类确认）；
+  (ii) Bhawalkar et al. 2025 存在但主题是 noisy oracle 非 LAA，不能放 LAA 段；
+  (iii) SNAP email-Eu-core 官方规定引用是两条（Yin KDD'17 + Leskovec TKDD'07），均入库；
+  GEMSEC 出处是 ASONAM 2019。Horel-Singer vs Hassidim-Singer 已确认为两篇（原稿错引成立），
+  另有第三篇 Singer-Hassidim NeurIPS 2018 需防混淆。
+- results.tex 的引用键已对齐（goundan2007revisiting），paper 重编译 0 未定义引用。
+- 详见 results/F6_citation_audit.md。
+
+### F5 写作物料 — PASS（6 页，模板下编译干净）
+- paper/sections/results.tex（理论九节正式陈述，每条带状态标签注释与验证脚本指针，
+  逐词过空洞性检验：无 robust、无裸 tight、全称句带限定）；appendix_proofs.tex（证明骨架，
+  sympy 验证处逐一注明 verified symbolically）；notation_table.tex；statements.tex
+  （AI use + reproducibility 如实草稿）；figures/captions.tex（主图+三辅图）。
+- paper/main.tex 组装编译：pdflatex+bibtex+pdflatex×2 全过，0 LaTeX 错误、0 未定义引用/交叉引用，
+  日志 results/F5_paper_compile.log。GS 归属修正已进正文。
+
+### F2 理论卫生 — PASS（两个悬案落地）
+- **(5,4) 判定为真实差异**：N4 闭式隐含多加了 F(x,K)≡1；LP 只要求 |S|≤K 处 F≤1，最优解用
+  F(x,K)=1+xε（ε=1.755e-4）。精确二进有理可行点证明 LP ≤ 0.2474903831 < 闭式 0.2474906885；
+  加回该约束后 LP 精确回到闭式（≤5.6e-17）。触发条件（为何仅 K=5）仍开放，已如实记录。
+  [VERIFIED-LP 精确有理]，results/F2_54_exact.py（主会话复跑退出码 0）。
+- R6 有效不等式手证 results/F2_R6_validity.tex [HAND-PROOF-UNREVIEWED]，含 b_t ∈ O 情形；
+  模板下编译通过（results/F2_compile.log）。重要 remark：cons 约束用到离轨状态的 band，
+  故 reduced LP 精确值只对全局 η 成立，而 L_K（只用 sum+pred）可对 η^sel 陈述——
+  这解释了三把尺子的层级，正文已按此写。
+- η^sel 紧性：U_K 实例 K=2..8×â∈{1.5,2} 上 η^sel=η^path=â 全 PASS（量化口径差异已注明），
+  R7 已追加一行。[VERIFIED-LP]，results/F2_etasel_tight.py（主会话复跑退出码 0）。
+
+### F0 状态同步与记号定稿 — PASS
+- RESEARCH_STATE 追加 R14（实验之夜四段，含 OPT 代理注记）；L_K ≤ min_j V_j 升级 [PROVED]
+  （约束包含关系一行论证）；GLOSSARY 加记号定稿/η^sel 出处/引用四步核验三条；paper/macros.tex。
 
 ### ——— 实验之夜（TASKS_EXP.md）———
 

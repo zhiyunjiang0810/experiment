@@ -52,6 +52,7 @@ greedy（tie 向 B）选满 B，比值 1 − a^K；**path error = â**。
 - L_K ≤ ρ_K ≤ U_K，两侧 → 1 − e^{−1/η}。数值：U_K − ρ_K ≈ O(1/K²)。
 代码：`code/check_explicit_instance.py`。
 已知缺陷：这个实例对 pair 查询泄露 O（G(0,2) ≠ G(2,0)），所以它**不是** poly-query hardness 的实例。
+η^sel 度量下 L_K 同样逐 K 紧：U_K 实例上 η^sel = η^path = â，realized ratio = L_K(â)（差 ≤ 1e−12）[VERIFIED-LP K=2..8×â∈{1.5,2}，results/F2_etasel_tight.py]
 
 ## R8 [VERIFIED-LP，Richardson 外推 5 位小数] lim_{K→∞} ρ_K(η) = 1 − e^{−1/η}
 η=1.5,2,3 均吻合。也可由 R1 + R7 解析推出。
@@ -121,3 +122,42 @@ all-pairs 误差、tie 对抗下，pair greedy 的精确最坏值在 η ∈ {1.5
 - **R11(c) 解读修正（N4）**：relaxF LP 的 n=8K 数值未收敛；n→∞ 极限 = min_j V_j（R10 闭式），
   严格小于 U_K。最优 (F,G) 有完整显式公式（相位 1 = R7 实例取 a=q；相位 2 = coherence 取等尾巴），
   一般 (K,η) 符号验证 + 42 组精确有理可行性（results/N4_hardness_construction.md）。
+
+## R14 [实验之夜 E0-E6] 实验结果（全部无人工扰动 oracle；ratio 分母是 greedy-on-f，即 OPT 上估代理）
+- E4 最坏实例数值实现：N2 的 V_j 实例（K∈{3,5,8}）与 U_K 实例经实验管线（CELF + 缓存）
+  realized ratio 与理论差 ≤1.1e-16；V_j 实例上 η^sel = η、η^path = η 精确。
+  worst case 在真实 greedy 代码上逐点发生（主图叉点）。results/E4_*。
+- E1 feature selection：f = 决策树 held-out acc，f̃ = train 5-fold CV（结构性隔离测试集，
+  四层断言+行为探针）；airline 全量 25,375 行。K=7 中位数：ratio 0.971（airline 0.999），
+  η^sel 2.0，L_7(η^sel) 0.405 有信息量；η^path 10-52，其下界 0.02-0.10 几乎无信息量
+  → 论文主用 η^sel。基线：airline 上每个 K 不劣于 SelectKBest/RFE/MI/ExtraTrees 最好者。
+  发现：held-out acc 非 submodular，纯 CELF 轨迹偏离精确 argmax（真值 greedy 已改逐步精确）。
+  results/E1_*。
+- E2 influence maximization：一跳覆盖，f̃ = 边保留概率 p 的观测图；4 个替代图全量 240 轨迹
+  （artist 50,515 节点全图）。K=30 中位数：ratio 0.963，η^sel 4.3。p-η 单调：p 0.8→0.3 时
+  η^sel 升 3.2-87×，ratio 仅 0.99→0.88-0.96。viol=0 是结构性的（两覆盖函数）。results/E2_*。
+- E3 summarization（模型边界外）：f = ROUGE-1 F 自实现，f̃ ∈ {coverage, diversity, facility}；
+  BBC 三类各 100 篇（sport/tech 参考摘要 HF 回填，99/100 逐 token 验证，源 CSV 入库）。
+  K=5 中位数：ratio 0.670，η^sel 7.2；ROUGE-1 F 实测 submodular 违反 2.14%、单调违反 7.12%。
+  results/E3_*。
+- 主图 figures/money_plot：真实任务散点悬在 ρ_K/L_K 上方，E4 构造实例贴线。
+
+## 更新（第四晚 F0）
+- R10 补：L_K(η) ≤ min_j V_j(η) 由 [CONJECTURE] 改为 [PROVED]。一行理由：reduced LP 的约束集
+  包含 Theorem 6 分析所用 LP 的全部约束；约束更多可行域更小，最小值不减，故 reduced LP 值 ≥ L_K。
+
+## 更新（第四晚 F1-F4）
+- F1：E2 的 η^path 去截断全量重算（K=30 合并中位数 71.7→284；ratio/η^sel/viol 逐行不变）；
+  ROUGE 自实现与 rouge-score 精确 0 差（90 篇负控制验证）；统一行新增 n/frac_steps_nonpos 列；
+  breast_cancer 暴力 OPT 到 K=4：f(greedy^f)/OPT 中位 0.9823。
+- F2：(5,4) 判定为真实差异（N4 闭式隐含 F(x,K)≡1，LP 不要求；加回后精确复原）[VERIFIED-LP 精确有理]；
+  R6 四族有效不等式手证成文（results/F2_R6_validity.tex）；关键 remark：cons 约束用离轨 band，
+  故精确值只对全局 η 成立、L_K 可对 η^sel 陈述。U_K 实例上 η^sel=η^path=â [VERIFIED-LP K=2..8]。
+- F3：真带 τ=1 下 N4 构造 δ=0 可行 iff n > K(T+1)（12/12 [CONJECTURE]）；τ≥2 对任意 n/δ 不可行
+  （2 约束 IIS，240/240）。意外正面：G 在 x>T 自动 O-无关 ⇒ 任意大小查询的 hardness 定理草稿，
+  预算 Q=O(n²/((2+η)²K⁴))，指数 2 是该族内在上限（results/F3_hardness_full.tex）。
+- **F4（重要建模结论）**：要求 f̃ 也 submodular 时最坏值在 η < K−1 区严格变大
+  （K=3,η=1.5: 9/16→19/33；K=4,η=2: 22/49→23/50）[VERIFIED-LP + 实例验证器确认可达]；
+  新闭式猜想 ρ_K^sub = min_m W_m，W_m=(K−m r^m)/(K(1+(η−1)r^m))，r=1−1/K，76/76 点吻合
+  [CONJECTURE]；渐近极限比 1−e^{−1/η} 高约 10%；U_K 在新模型失效为上界。
+  若论文采用 submodular surrogate 模型，R7/U_K 陈述需重写（results/F4_submodular_ftilde.md）。
