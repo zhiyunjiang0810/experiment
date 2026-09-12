@@ -3,7 +3,8 @@
 规则：每条定理一张卡，字段固定。写作时只准从这里取陈述与状态，不准凭记忆。
 状态标签：[VERIFIED-SYMBOLIC] [VERIFIED-LP] [VERIFIED-EXHAUSTIVE] [HAND-PROOF-UNREVIEWED] [CONJECTURE] [OPEN]。
 "禁止声称"一栏是空洞性检验和审稿反例的沉淀，比陈述本身更重要。
-本版：2026-09-12（第八晚 M0-M5，J5 独立审计落实：T0 lem:scaling 与固定 K 步、T1/T2/T3 量词与定义域、T6 n 量词、T7 M3.2 精确点与方向更正、T8 随机量词、T10b 改名与 n ≥ 4K⁵ 量词、T11 证据等级与候选总结、T14 范围、M4 九条禁止声称；J5 输入文件未送达，处理规则见 results/J5/MISSING_INPUTS.md；此前第九晚 P0-P3、第七晚 L 系列）；每卡状态标签与 results/ 脚本一一对应。
+本版：2026-09-12 深夜（J5 到齐日 J5H1-J5H6：T8 统一 ceiling 重写并升级达到方向、T7 加 β_m 下包络与
+措辞禁令、T9 首行统一与历史归档、T11 PE₁ 精确证书升级与撤回条；此前同日第八晚 M0-M5：T0 lem:scaling 与固定 K 步、T1/T2/T3 量词与定义域、T6 n 量词、T7 M3.2 精确点与方向更正、T8 随机量词、T10b 改名与 n ≥ 4K⁵ 量词、T11 证据等级与候选总结、T14 范围、M4 九条禁止声称；J5 输入文件未送达，处理规则见 results/J5/MISSING_INPUTS.md；此前第九晚 P0-P3、第七晚 L 系列）；每卡状态标签与 results/ 脚本一一对应。
 
 ---
 
@@ -110,6 +111,15 @@
   卡点：路径变量 reduced LP 加全部自然 f̃-submodularity 有效不等式后值仍为 min_j V_j（42/42
   [VERIFIED-LP]），该批不等式不足以给下界（H-C §5）。
 - 紧系统 ⟹ W_m [VERIFIED-SYMBOLIC]（符号 K,m,η_u,η_o；机制推导非下界证明）。
+- 分段点（J5H4，来源 J5 hardcore §1.4）：相邻分支交点 **β_m = 1 + (K−m−1)/(K(1−r^{m+1}))**，
+  m = 0..K−2，随 m 严格下降；取 β_{−1}=∞、β_{K−1}=1，则 W_m 在 [β_m, β_{m−1}] 上是全族最小。
+  交点恒等式与 W_m−W_{m+1} 的符号判别式 [VERIFIED-SYMBOLIC，results/J5_hardcore/
+  J5_hardcore_oracles.py]；由相邻差符号到区间活跃性的装配 [HAND-PROOF-UNREVIEWED，来源 J5]。
+  **这是候选上界族的下包络描述，不是一般匹配下界。** 一般参数实例核验升级：J5 对 56 个实例、
+  121,344 条边、262,144 个方块 Fraction 精确通过（含非对称拆分），一般参数的四点手证
+  （二阶差分非正、band 端点、逐步打平、OPT=1）[HAND-PROOF-UNREVIEWED，来源 J5]。
+  措辞禁令：不写"把 V_j 的 q 换成 r"（直接替换得不到该分母；该说法只出现在送审 dossier，
+  仓库正文从未使用，本条为预防性登记）。
 - 禁止声称（M4 追加）：用高比值实例证明 ρ^sub 的 worst-case 下界（实例只给上界 ρ^sub ≤ 值；
   下界要对偶/保证侧证书，J5 指出的方向错误，M3.2 处理中）。
 - 禁止声称："strictly improves for all η<K−1"（只在部分点验证）；"ρ_K^sub = min_m W_m"（下界无证书）；
@@ -129,34 +139,57 @@
   19/33 < 37/64；K=4, η=2 的 23/50 < 61/125）U_K 数值上仍在其上。
 - J5 §13 的 W_m 一般手证未转录（原文缺失）；上界方向维持 H-C 的 [VERIFIED-LP 410 点]。
 
-## T8 thm:ceiling — 1/η 天花板
-- 陈述（M1 随机量词校正）：任意确定性算法、任意 η_u,η_o ≥ 1、n ≥ 2K，存在误差恰为 (η_u,η_o) 的实例使
-  f(T) ≤ f(O*)/η；随机版量词：**对每个随机算法存在固定实例**（误差恰 (η_u,η_o)）使
-  E_seed[f(T)] ≤ ((1−K/n)/η+K/n)·f(O*)；对 f̃ 穷举 K-子集在任何实例上 ≥ f(O*)/η。
-- 状态：[HAND-PROOF-UNREVIEWED]（对称 f̃=c|S|，modular f，O 藏在输出外）。
+## T8 thm:ceiling — 确定性天花板，统一到全部 ground-set 大小（J5H2 重写）
+- 统一陈述（来源 J5 套 A，results/J5_hardcore/J5_ceiling_proof.md）：2 ≤ K ≤ n，确定性、任意查询
+  次数与大小、输出 ≤ K。minimax 值 **C*_{n,K}(η) = K/(K+(η−1)·min{K, n−K})**
+  （K ≤ n ≤ 2K 时 = K/((2K−n)+(n−K)η)，n ≥ 2K 时 = 1/η）。
+  上界侧：对每个确定性算法存在实例（f̃ = b|S| 线性预测 + modular 高低权 f，任意拆分 (η_u,η_o)
+  实际误差两端恰取到；n=K 时输出全集比值 1，端点校准用混合高低权）。
+  下界侧（**达到**）：穷举 argmax_{|T|=K} f̃ 在每个实例上 ≥ C*，且有更强的**逐实例式**
+  f(S)/f(O) ≥ K/(K+(η−1)|O∖S|)（重叠越多越强，无最小重叠假设）。
+- 证明结构（J5 三步）：(i) 交换求和：对全部 aK 对 (b,s) 用 f̃(S) ≥ f̃(S∖{s}∪{b}) 与两侧带得
+  KD ≤ ηaR ≤ ηaA，Z ≤ (1+ηa/K)A；(ii) 同一并集上两条误差带耦合：(Z−A)/η_u ≤ X ≤ Y ≤ η_o(Z−B)
+  推 B ≤ (1−1/η)Z + A/η；(iii) 消去 Z 得 B ≤ (1+(η−1)a/K)A。
+- 状态：四项非负 slack 恒等式 (7)（(1+(η−1)a/K)A−B = E+γH+(γ/K)J+(γηa/K)T）、E 的三项分解 (8)、
+  单次交换四项分解 (9)：[VERIFIED-SYMBOLIC，results/J5_hardcore/J5_hardcore_oracles.py，14 项之内]；
+  52 个独立全格点算法侧 LP、24 个 modular 对手实例 37,056 个 all-pairs 增量 [VERIFIED-LP 同脚本]；
+  一般集合上的交换、望远镜与 minimax 量词装配 [HAND-PROOF-UNREVIEWED，来源 J5 套 A]。
+  **达到方向由 [CONJECTURE] 升级为该标签（用户指令，J5H2）；M3.1 的 FAILED 记录由此关闭。**
+- 量词五条（J5 §5，写进附录）：下界量词是"存在算法对所有实例"（非任意算法）；|S|=K 是穷举自身的
+  输出规范，|S|<K 的算法把输出补足即可被上界覆盖；无需最小重叠；需要全部交换比较（one-swap
+  local optimality 不够）；穷举非多项式查询，不改变有限预算 hardness 的适用范围。
+- 随机版（单列）：n ≥ 2K 的上界 (1−K/n)/η+K/n 保留（逐算法固定实例量词）。**确定性值不是随机值**：
+  n=3, K=2, η=3 时确定性值 1/2，而均匀随机二元集对任何单调 submodular 目标 E ≥ (2/3)·OPT
+  （一般：均匀 K-子集 E ≥ (K/n)f(N)，随机排列非增期望边际求和 [HAND-PROOF-UNREVIEWED，来源 J5]）。
+  随机 minimax 仍 [OPEN]。
+- 乘积依赖禁令缩小（J5 §五）：新对手构造对**任意拆分**实际误差恰取到，故本定理两侧对任意拆分成立、
+  值只依赖乘积；原"只对对称族"的限制解除（一般 comparison-based 之外的逐算法不变性仍只有
+  lem:scaling 的类意义）。
 - 禁止声称："1/η 是多项式算法的界"（它是信息论的）；
   "η ≥ K 时 greedy、穷举与任何算法相同"（只能写 greedy 达到不限查询的确定性最优保证）；
   随机上界 (1−K/n)/η+K/n 是有限 n 下的精确最优（它只是上界）。
 - 构造的误差恰为 (η_u,η_o)：J4 精确穷举 253,220 个 all-pairs 增益 [VERIFIED-EXHAUSTIVE]。
 - 副产品（J4）：1 ≤ η < K 时穷举的最坏保证 1/η 严格优于 greedy 的 ρ_K（ρ_K ≤ V_1 < V_0），
   差 ≥ (K−η)/(Kηk_1)；K=3：η=1: 19/27 vs 1；1.5: 9/16 vs 2/3；2: 7/15 vs 1/2；3: 相等。比较的是最坏保证。
-- n<2K（H-E）：对称 f̃=b|S| 族给出的天花板 C(n,K,η)=K/(m0+(K−m0)η)，m0=max(0,2K−n)，
-  即 1/((1−λ)η+λ)、λ=m0/K；n ≥ 2K 时退化为 1/η；逐 overlap 类型 m 的值 K/(m+(K−m)η) 对 m 递增。
-  状态：[VERIFIED-LP]（K∈{2,3,4}, n∈{K+1..2K}, η∈{1.5,2,3}，84 点、n<2K 48 点、误差 ≤3.4e-16，
-  results/H_E_ceiling_small_n.py）+ 两侧手写论证 [HAND-PROOF-UNREVIEWED] + witness Fraction 精确
-  验证 [VERIFIED-SYMBOLIC]。输出大小 s<K 更差。
-- M3.1 记录（2026-09-12）：J5 §9 的补集损失证明（h supermodular、三步）因 J5 报告未送达无法转录；
-  本地重构在限时内 FAILED（值带 telescoping 只复现 1/η；重叠 m0 的利用卡在 f(Ŝ∩O*) 下界，
-  与 H-E 手证同一卡点；results/M3_ceiling_attempt.md）。达到方向维持 [CONJECTURE] 不升级。
+- 历史（H-E，2026-09-07，被统一陈述覆盖）：对称族天花板 C(n,K,η)=K/(m0+(K−m0)η)、m0=max(0,2K−n)
+  与 C*_{n,K} 一致；[VERIFIED-LP 84 点，results/H_E_ceiling_small_n.py] + witness Fraction 精确验证。
+  当时算法侧一般证明 FAILED（卡在 f(Ŝ∩O*) 下界）；J5 的交换 + 并集耦合路线绕开该卡点。
+- 历史（M3.1，2026-09-12 早）：J5 文件未送达时的本地重构 FAILED（results/M3_ceiling_attempt.md）；
+  本晚 J5 原文到齐后按 J5H2 转录，该记录关闭。
 - 禁止声称（M4 追加）：随机算法**逐种子**满足确定性界（随机版只是期望陈述，量词是逐算法固定实例）。
-- 禁止声称（H-E）：C 由某算法一般达到（exhaustive 在 K≤4, n≤7 网格恰达 C 是 [VERIFIED-LP] at
-  grid，一般 [CONJECTURE]，手证卡在 f(Ŝ∩O*) 可为 0，两步分解失效）；C 是 randomized 值
-  （n<2K randomized 仍 [OPEN]，(1−K/n)/η+K/n 只是上界且在 n<2K 比 C 松）；"值只依赖 η_uη_o"
-  推广到一般 f̃（scaling 论证只对 f̃=b|S| 族成立）。
+- 禁止声称（J5H2 更新）：把达到方向说成机器证明（装配是 [HAND-PROOF-UNREVIEWED，来源 J5]，
+  恒等式与有限 LP 才是 oracle）；C* 当 randomized 值（n=3,K=2,η=3 反例，随机 minimax [OPEN]）；
+  由 one-swap local optimality 调用该证明（需要全部交换比较）；把穷举当多项式查询算法或据此
+  改动 hardness 的适用范围。
 
-## T9 cor:limit — 渐近
-- 陈述：固定 η，L_K(η)、ρ_K(η) → 1−e^{−1/η}；L_K 关于 K 单调（ρ_K 单调性 [OPEN]，G2 已删该子句）。
-- 状态：由 L_K ≤ ρ_K ≤ U_K 与两侧极限。
+## T9 cor:limit — 渐近（J5H5 首行统一：单调性已证，历史移卡末）
+- 陈述（最终状态）：固定 η，L_K、ρ_K、U_K → 1−e^{−1/η}；ρ_K 关于 K **非增**，K ≤ ⌊η⌋ 平台 1/η，
+  K ≥ ⌊η⌋ 起严格递减（[VERIFIED-SYMBOLIC，conditional on thm:exact]，证明已迁入 app:asymptotics，
+  J5H5）；一阶展开 ρ_K = 1−e^{−1/η} + c(η)/K + O_η(1/K²)，c(η) = e^{−1/η}(2η−1)/(2η²)（不随
+  ⌊η⌋ 分段；c_L = e^{−1/η}/(2η²)、c_U = c，同样已迁入附录）。
+- 状态：极限由 L_K ≤ ρ_K ≤ U_K 与两侧极限；展开与单调性证书 [VERIFIED-SYMBOLIC conditional on T6，
+  results/H_B_asymptotic.py，J5 hardcore oracle 独立重验（84 项分子、165 项分母全非负，常数 14/48）]；
+  余项的 Taylor 装配与导数论证到离散差分的装配 [HAND-PROOF-UNREVIEWED]。
 - 渐近展开（H-B）：固定 η ≥ 1，ρ_K(η)=1−e^{−1/η}+c(η)/K+O(1/K²)，c(η)=e^{−1/η}(2η−1)/(2η²)。
   c 不随 ⌊η⌋ 分段（1/K 项上 m=⌊η⌋ 贡献相消）；分段的是 1/K² 系数
   d(η,m)=e^{−1/η}[24η³(1−m)+12η²(m²+m−3)+20η−3]/(24η⁴)。c 在 η*=1+1/√2 处取最大 0.230579。
@@ -170,6 +203,9 @@
   U_K−ρ_K=O(1/K²)。均 [VERIFIED-SYMBOLIC]。
 - 禁止声称（H-B）：O(1/K²) 对 η 一致或带显式常数（[CONJECTURE]）；c 分段（不是，分段在 1/K²）；
   由单调推凸凹（未查）；把本卡结论当对 ρ_K=min_j V_j 的独立确认（全部 conditional on T6）。
+- 历史（J5H5 归档）：G2 曾因无证明删去 cor:limit 的 ρ_K 单调子句并留 [OPEN]；第六晚 H-B 闭合证明后
+  正文子句恢复但附录未同步、卡首行未更新（J5 审计 §四 指出）；本晚证明迁入 app:asymptotics，
+  首行按最终状态统一。旧值更正记录保留：c(3)≈0.197 是 K=50 原始值，极限 0.199036。
 
 ## T10 thm:hardness — 有界查询 hardness（K4 后按 J2 校准）
 - 陈述：c ≥ 0 实数，τ=⌈c⌉+1，K>τ，n ≥ 4K^{c+2}，η>1 且 η ≥ (K−1)/(K−τ)，θ̄=(η(K−τ)+1)/K。任意确定性算法，≤n^c 次、每次集合大小 ≤K 的 f̃ 查询、输出 ≤K 元素，存在实际误差恰为 η 的实例使 f(T)/f(O*) ≤ H_{K,τ}(η)=1−(1−1/(η(K−τ)+1))^K=L_K(θ̄)。随机版加 ε_n=K/n+K^{2τ+2}/((τ+1)! n^{τ+1−c})。
@@ -239,12 +275,25 @@
 - 陈述：greedy 用 ≤ Kn−K(K−1)/2 次查询；当 nK ≤ n^c（如整数 c ≥ 2, K ≤ n）时，该查询类的渐近最优值为 1−e^{−1/η}，有限 K 间隙 O((c+1)/K)。
 - 禁止声称：c=0,1 的类（精确穷举反例：单查询算法可被逼到 0）；"O(c/K)"；有限 K 的同预算最优性
   （[OPEN]：只排除渐近常数的统一改进，不排除有限 K 或低阶项的改进）。
-- PE_R 数值结论（H-F，K=3, R=1）[VERIFIED-LP，分支定界跑完 + 逐实例 certificate]：
+- PE_R 数值结论（H-F，K=3, R=1；J5H3 升级与收缩）：
   n=6=2K 时 PE_1 严格优于 greedy（19/29、1/2、2/5 vs 9/16、7/15、7/18，后两值恰为 1/η）；
-  n=7,8 时 η∈{2,2.5} 处 PE_1 严格劣于 greedy（4/9、16/45 等），η=1.5 仍优（16/27）。
-  η=1 精确复现 NW 1978（5/6 与 19/27）。n=6 闭式 min{1/η,(9η−4)/(2(3η²+η−1))} [CONJECTURE]，
-  在 n=7 被证伪。解读：枚举起点的收益与"按 f̃ 选终点"的损失独立，n 大时后者占优，NW 的有限 K
-  改进不能原样搬入预测模型；这是 greedy 有限 K 最优性的正面证据（R=1,K=3,n≤8），非证明。
+  n=7,8 时 η∈{2,2.5} 处 PE_1 严格劣于 greedy，η=1.5 仍优（16/27）。
+  **(K,η)=(3,2)、n=7 的关键格子现有精确有理穷举证书**（J5 hardcore：七元素实例由两张 3×4 表重建，
+  128 子集、448 条边（0 ≤ d/2 ≤ d̃ ≤ d）、672 个 submodularity 方块 Fraction 全核，七条起点轨迹表，
+  PE_1 = 4/9 < 7/15 = ρ_3(2) < 5/9 = 该实例上 greedy 最坏值；[VERIFIED-LP，精确有理穷举，
+  results/J5_hardcore/J5_hardcore_oracles.py + J5_variant_certificates.md §4]；正文引用以此格为准）。
+  补零扩展到一切 n ≥ 7 [HAND-PROOF-UNREVIEWED，来源 J5]（新增 singleton 起点用"先选原 argmax b、
+  走其完成轨迹前缀、预测单调性封顶"的论证，n=8,9 已精确穷举复核；PE₁ 的扩展与单条 greedy 的
+  restriction 论证不可混用）。
+  η=1 精确复现 NWF 1978（5/6 与 19/27）。n=6 闭式 min{1/η,(9η−4)/(2(3η²+η−1))} [CONJECTURE]，
+  在 n=7 被证伪。解读：枚举起点的收益可被"按 f̃ 选终点"的损失抵消（不声称必然损失满 η 因子）；
+  这是 greedy 有限 K 最优性的正面证据（R=1,K=3,n≤8），非证明。
+- 撤回（J5H3）："η ≥ 1.75 亦然"的连续外推（离散扫描不支持连续断言；只保留已验证网格点
+  η ∈ {1.75, 2, 2.5} 等逐点结论，H_F md 已加更正注记）；"n=6 放不下三组是反转的唯一原因"
+  （机制解释非唯一性证明）；"没有证据说它有下确界"（有界非空必有 inf；补零扩展下最坏比对 n 非增）。
+- 引用规范（J5H3）：PE 的出处写 Nemhauser, Wolsey, Fisher (1978), Section 7, Theorem 7.1
+  （bib 键 nemhauser1978analysis，三作者已核），不写易混淆的 "NW 1978"；该定理给的是保证，
+  不据数值吻合声称文献证明了 PE₁ 的精确最坏值。
 - 禁止声称（H-F）：PE_1 一致优于（或一致劣于）greedy；n=6/7/8 的值互相覆盖或覆盖 n≥9
   （inf over n [OPEN]）；R≥2、K≥4、all-pairs band 的任何结论（未算）。
 - 线性预算候选数值结论（L2，K∈{2,3}，adversarial tie，single-element band）
