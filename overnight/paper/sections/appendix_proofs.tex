@@ -316,7 +316,12 @@ gives
   \qquad 1/\infty=0,
 \]
 which degrades a harmful zero step to a contraction factor of $1$ instead
-of collapsing the whole bound to $0$.
+of collapsing the whole bound to $0$.  For a run stopped after $K^{*}<K$
+steps the product ranges over the executed steps only, and no $L_K$ bound
+follows: the two-element instance of Section~\ref{sec:model} caps the
+stopped run at ratio $1/2$ against $L_2(1)=3/4$.
+% M1 (J5 section 3): executed-steps scope made explicit; counterexample
+% recomputed in exact rationals, results/M0_counterexamples.py part 1.
 % [HAND-PROOF-UNREVIEWED]; suggested by the J2 external review (section
 % 4.2), which checked it with exact arithmetic on 1,905 small-instance
 % trajectories (results/J1_independent_audit.py); the recursive assembly
@@ -1617,7 +1622,12 @@ states the slightly larger
 $\varepsilon_n=K^{2}/n+K^{5}/(2n)$, which also matches the deterministic
 output count.  The quantifier order is that of Theorem~\ref{thm:hardness}:
 the instance may depend on the algorithm, and the expectation is over the
-algorithm's randomness only.
+algorithm's randomness only.  The additive term vanishes only in the joint
+limit $n/K^{5}\to\infty$; at fixed $n$ it does not.  The combination with
+the ceiling as $\min\{U_K(\eta),1/\eta\}$ is stated for deterministic
+algorithms only.
+% M2.6 (J5): joint-limit condition and the deterministic-only scope of the
+% min combination made explicit; ledger T10b.
 
 \paragraph{The width of the interval.}
 For the gap statement of Remark~\ref{rem:greedybudget}, expanding both

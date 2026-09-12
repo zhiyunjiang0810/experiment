@@ -19,7 +19,8 @@
 \subsection{An error bound is necessary}\label{sec:necessity}
 
 \begin{proposition}[No bound, no guarantee]\label{prop:necessity}
-If no upper bound on $\eta$ is assumed, then for every algorithm with
+If no upper bound on $\eta$ is assumed, then for every deterministic
+algorithm with
 arbitrary query access to $\tilde f$ and every $n\ge2K$ there are pairs
 $(f,\tilde f)$ on which the output $T$ satisfies
 $f(T)\le\tfrac{K}{n-K}\,f(O^{\ast})$.  Consequently no constant worst-case
@@ -28,10 +29,15 @@ ratio is achievable without an error assumption.
 % Status: [HAND-PROOF-UNREVIEWED]; the construction is the symmetric
 % predictor of the 1/eta ceiling (Theorem \ref{thm:ceiling}) with the error
 % parameter sent to infinity; proof sketch in Appendix \ref{app:necessity}.
+% M1 (J5 quantifier item): "deterministic" made explicit.  A randomized
+% analogue would read "for every randomized algorithm there is a fixed pair
+% with E_seed[f(T)] <= ... f(O*)" via the averaging of app:hardness; no
+% constant is derived here and none is claimed (ledger T1).
 
 Proposition~\ref{prop:necessity} says that some error bound is needed; the
-next statement says the bound has to be on marginal gains rather than on
-values.  Following Hassidim and Singer, call $\tilde f$ value-accurate at
+next statement says that value accuracy need not imply the marginal-gain
+assumptions used in our bounds.  Following Hassidim and Singer, call
+$\tilde f$ value-accurate at
 level $\varepsilon\in(0,1)$ if
 $(1-\varepsilon)f(S)\le\tilde f(S)\le(1+\varepsilon)f(S)$ for every
 $S\subseteq N$ \citep{hassidim2017submodular}.
@@ -51,7 +57,12 @@ every state an element of maximum true gain, so $\etasel=1$ and the full
 guarantee of Proposition~\ref{prop:guarantee} applies to the run.
 \item[(iii)] Conversely, every predictor with error at most
 $(\eta_u,\eta_o)$ for a nonnegative $f$ is value-accurate at level
-$\max\{1-1/\eta_u,\ \eta_o-1\}$.
+$\max\{1-1/\eta_u,\ \eta_o-1\}$, provided that this value is below $1$
+(that is, $\eta_o<2$), so that it lies in the domain of the definition
+above.
+% M1 (J5 domain item, ledger T2): the quoted definition takes
+% epsilon in (0,1) and eta_o >= 2 puts the level outside it; the proviso is
+% the conservative fix that leaves the cited definition untouched.
 \end{itemize}
 \end{proposition}
 % Status: [HAND-PROOF-UNREVIEWED]; proof in Appendix \ref{app:valueacc}.
@@ -194,6 +205,19 @@ $\rho_4=\tfrac{135\eta^2+36\eta+4}{4(3\eta+1)^3}$,
 $\tfrac{21\eta+2}{2(3\eta+1)^2}$, $\tfrac{13}{4(3\eta+1)}$, $\tfrac1\eta$ on
 $[1,2],[2,3],[3,4],[4,\infty)$.
 \end{theorem}
+\begin{remark}[Ground-set size]\label{rem:exact-n}
+Write $\rho_{n,K}(\eta)$ for the worst case over instances on a fixed
+ground set of size $n$.  Restricting a worst-case instance to
+$T\cup O^{\ast}$ leaves the run legal and the ratio unchanged, and padding
+with elements of identically zero true and predicted gain preserves the
+band and the run, so $\rho_{n,K}(\eta)=\rho_{2K,K}(\eta)$ for every
+$n\ge2K$; $\rho_K$ denotes this common value throughout.
+\end{remark}
+% M1 (J5 section 13 spec, transcribed from TASKS8; the J5 text itself was
+% not delivered, so the two-step argument above is a LOCAL reconstruction):
+% [HAND-PROOF-UNREVIEWED].  Numeric support [VERIFIED-LP]: the full-lattice
+% greedy LPs of results/L2_linear_candidates.py (gates mode, Gate 1) equal
+% rho_K pointwise at K=2, n in {4,5,6} and K=3, n in {6,7}.
 % Status decomposition (per CLAUDE.md tags):
 %  >= direction ("greedy is never worse"): explicit dual certificates for the
 %    reduced LP, general K [VERIFIED-SYMBOLIC modulo a finite branch
@@ -360,9 +384,23 @@ at $K=4$, $\eta=2$ from $22/49$ to $23/50$.
 % [VERIFIED-LP with instance-validated attainment,
 %  results/F4_submodular_ftilde.md]
 The family above becomes inadmissible in that model, so the upper-bound
-argument through $U_K$ no longer applies there; at the verified points
-$U_K$ itself still lies above the new worst case.  A general
-characterization is left open.
+argument through $U_K$ no longer applies there, and the bound itself can
+fail: at $K=4$, $\eta=3/2$, $n=8$ the submodular-surrogate worst case
+equals $23/41$ exactly, certified on both sides (an explicit rational
+instance and exact rational dual certificates for all seventy target
+sets), and $23/41>U_4(3/2)=8080/14641$; the value is unchanged for every
+$n\ge8$ by restriction and padding.  At the other verified points, such as
+$K=3$, $\eta=3/2$, the value $19/33$ still lies below $U_3(3/2)=37/64$.  A
+general characterization is left open.
+% M3.2 (J5 item; the J5 dual file was never delivered, so the certificates
+% are a LOCAL rebuild): results/M3_rhosub_K4_exact.{md,py,json}.  Upper
+% side [VERIFIED-SYMBOLIC-EXACT] (Fraction instance, 0 of 7702 rows
+% violated); lower side [VERIFIED-EXACT-DUAL] (16 orbits lifted to the
+% full LP, transported to 70 target sets; dual infeasible above 23/41);
+% the model-to-LP reduction steps and the restriction+padding extension
+% are [HAND-PROOF-UNREVIEWED].  The former wording backed 23/41 > U_4 by
+% an instance alone, which is the wrong direction (an instance only upper
+% bounds the worst case); corrected here per the J5 audit.  Ledger T7.
 % Decision D1 (TASKS5): the main model leaves ftilde unrestricted; this
 % remark is the only place the submodular-surrogate variant appears.  LP
 % evidence for a min_m W_m closed form is recorded in
@@ -383,8 +421,11 @@ characterization is left open.
 For every deterministic algorithm with arbitrary query access to $\tilde f$,
 every $\eta_u,\eta_o\ge1$, and every $n\ge2K$, there is a pair
 $(f,\tilde f)$ with error exactly $(\eta_u,\eta_o)$ on which the output
-$T$ satisfies $f(T)\le f(O^{\ast})/\eta$.  For randomized algorithms the
-bound becomes $(1-\tfrac Kn)\tfrac1\eta+\tfrac Kn$ in expectation.
+$T$ satisfies $f(T)\le f(O^{\ast})/\eta$.  For every randomized algorithm
+there is a fixed pair, again with error exactly $(\eta_u,\eta_o)$, on which
+the expectation over the algorithm's randomness satisfies
+$\mathbb E[f(T)]\le\bigl((1-\tfrac Kn)\tfrac1\eta+\tfrac Kn\bigr)
+f(O^{\ast})$.
 Conversely, exhaustive search over all $K$-subsets of predicted values
 achieves $f(\hat S)\ge f(O^{\ast})/\eta$ on every instance.
 \end{theorem}
@@ -452,8 +493,11 @@ $1/K$ coefficient $e^{-1/\eta}/(2\eta^{2})$.
 % thm:exact; the tail bound is the single hand step]; exact rational
 % differences K=2..400 at 7 eta values show 0 negative signs
 % (results/H_B_asymptotic.py).  The expansion and c(eta) are
-% [VERIFIED-SYMBOLIC] sympy series at fixed eta, cross-checked against
-% Richardson extrapolation to 1.3e-12; uniformity of the O(1/K^2) remainder
+% [VERIFIED-SYMBOLIC] sympy series at fixed eta; the numeric side is
+% closed form plus exact-Fraction/mpmath Richardson extrapolation (to
+% 1.3e-12), with the reduced LP of code/reduced_lp.py serving as the
+% independent cross-check of the closed form (M2.9 wording: the LP is the
+% cross-check, not the source); uniformity of the O(1/K^2) remainder
 % in eta is [CONJECTURE] and not claimed.  Proof of the limits in Appendix
 % \ref{app:asymptotics}; ledger card T9.
 
@@ -637,6 +681,22 @@ it is not.
 % claimed, no randomized version of it was constructed; deleting
 % "asymptotically in K" makes it false at finite K by the (c+1)/K gap.
 
+\begin{remark}[The size cap is essential for this construction]
+\label{rem:hardness-leak}
+The family of Theorem~\ref{thm:hardness} cannot be freed of the cap on
+query sizes: one round of the $n$ queries $N\setminus\{e\}$ separates
+membership in $O$, because the two $(n{-}1)$-set answer classes of $G_O$
+differ by $a^{\,n-K+\tau}/(K-\tau)>0$.  Hardness against arbitrary-size
+queries therefore requires different constructions;
+Appendix~\ref{app:hardness-anysize} records one direction and its limits.
+\end{remark}
+% M2.5 (J5 section 10): the leak is recomputed exactly at K=4, tau=1,
+% n=12, eta=2 (difference a^9/3, a=6/7): results/M0_counterexamples.py
+% part 3; and at K=3 by results/P1_asymmetric_families.py (night 9).
+% Editorial rule adopted with this remark: the query-size restriction must
+% appear wherever the hardness theorem is mentioned (abstract and intro
+% placeholders carry the same note).
+
 Remark~\ref{rem:hardness-pins} measures budgets on the scale $n^{c}$, which
 is coarser than the budget predictive greedy actually spends.  Re-running the
 counting argument of Theorem~\ref{thm:hardness} at that exact budget gives a
@@ -644,8 +704,9 @@ ceiling for the whole budget class, with the $\tau=1$ constant of
 Remark~\ref{rem:hardness-chain} rather than the weaker constant that the
 scale $n^{c}\ge nK$ would force.
 
-\begin{corollary}[Optimality within the greedy query budget]
+\begin{corollary}[An upper bound within the greedy query budget]
 \label{cor:greedybudget}
+% M2.3 (J5): renamed from "Optimality ..." -- the corollary is one-sided.
 Let $K\ge2$, $\eta>1$ and $n\ge4K^{5}$, and let $\mathcal A_{\mathrm{lin}}$
 be the class of deterministic algorithms that make at most $nK$ queries to
 $\tilde f$, each on a set of size at most $K$, and output a set of size at
@@ -689,7 +750,8 @@ $\varepsilon_n=K^{2}/n+K^{5}/(2n)$.
 Every run of predictive greedy on an instance with error at most $\eta$
 achieves at least $\rho_K(\eta)$ (Theorem~\ref{thm:exact}), and
 Corollary~\ref{cor:greedybudget} caps every member of
-$\mathcal A_{\mathrm{lin}}$ at $\min\{U_K(\eta),1/\eta\}$, so the best
+$\mathcal A_{\mathrm{lin}}$ at $\min\{U_K(\eta),1/\eta\}$, so for
+$n\ge4K^{5}$ the best
 worst-case ratio achievable within the greedy query budget lies in the
 interval $[\rho_K(\eta),\,\min\{U_K(\eta),1/\eta\}]$.  For $\eta\ge K$ the
 interval collapses: $\rho_K(\eta)=1/\eta$ by Theorem~\ref{thm:exact} and
@@ -705,8 +767,29 @@ $1<\eta<K$, at fixed $\eta$ as $K\to\infty$ the width of the interval is
 \]
 so any improvement over predictive greedy within
 $\mathcal A_{\mathrm{lin}}$ is confined to a band of width $O(1/K^{2})$;
-whether any of it can be realized at finite $K$ is open.
+whether any of it can be realized at finite $K$ and $n\ge4K^{5}$ is open.
+The restriction on $n$ cannot be dropped from statements of this kind: at
+$n=4$, $K=2$, $\eta=3/2$, querying all six pairs and returning the
+predicted argmax stays within the $nK$-query budget and guarantees
+$2/3=1/\eta$, above both $\rho_2(3/2)=3/5$ and $U_2(3/2)$, so for small
+$n$ the class contains exhaustive search and no greedy-optimality reading
+survives.
+At $\eta=1$ the corollary extends: the calibration reads $\bar\theta=1$,
+where the family of Appendix~\ref{app:hardness} degenerates to
+$\tilde f=f$ (error exactly $1$), and the constant
+$U_K(1)=L_K(1)=\rho_K(1)$, so for $n\ge4K^{5}$ predictive greedy is
+exactly optimal within $\mathcal A_{\mathrm{lin}}$ at $\eta=1$.  The case
+$K=1$ sits outside the statements above (they require $K\ge2$): there
+greedy returns a predicted-argmax singleton of value at least
+$f(O^{\ast})/\eta$ on every instance, matching Theorem~\ref{thm:ceiling},
+so at $K=1$ greedy is exactly optimal among all deterministic algorithms,
+with no budget restriction at all.
 \end{remark}
+% M3.4 (J5): the theta = 1 degeneracy identity a(K-y)/(K-1) = 1 - y/K, the
+% collapse U_K(1) = L_K(1) = V_{K-1}(1), and the K = 1 arithmetic are
+% [VERIFIED-SYMBOLIC], results/M3_checks.py; the K = 1 three-line chain
+% f(e) >= ftilde(e)/eta_o >= ftilde(o)/eta_o >= f(o)/eta is
+% [HAND-PROOF-UNREVIEWED].  Ledger T10b.
 % Status: the interval's lower end is the >= direction of thm:exact (every
 % feasible run is a point of the reduced LP, so its ratio is at least the LP
 % value rho_K; instances with error below eta are feasible for the eta-LP).
